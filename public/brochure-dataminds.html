@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brochure Dataminds</title>
+    <style>
+      :root {
+        --ink: #0f172a;
+        --muted: #334155;
+        --line: #cbd5e1;
+        --paper: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Space Grotesk", "Manrope", "Segoe UI", Arial, sans-serif;
+        background: var(--paper);
+        color: var(--ink);
+        line-height: 1.45;
+      }
+
+      .page {
+        width: min(960px, 92vw);
+        margin: 0 auto;
+        padding: 36px 0 40px;
+      }
+
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 20px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      .logo {
+        width: 30px;
+        height: 30px;
+      }
+
+      h1 {
+        margin: 20px 0 8px;
+        font-size: clamp(2rem, 4vw, 2.7rem);
+        line-height: 1.08;
+      }
+
+      .lead {
+        margin: 0;
+        color: var(--muted);
+        max-width: 64ch;
+      }
+
+      .hero-grid {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 16px;
+      }
+
+      .hero-note {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 16px;
+        background: #fff;
+      }
+
+      .hero-note h3 {
+        margin: 0 0 8px;
+        font-size: 1rem;
+      }
+
+      .hero-note ul {
+        margin-top: 6px;
+      }
+
+      .grid {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 18px;
+        background: #fff;
+      }
+
+      .card h3 {
+        margin: 0 0 8px;
+        font-size: 1.1rem;
+      }
+
+      .card p,
+      li,
+      .small {
+        color: var(--muted);
+      }
+
+      ul {
+        margin: 8px 0 0;
+        padding-left: 18px;
+      }
+
+      .kpis {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .bottom-grid {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      .mini {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px 14px;
+      }
+
+      .mini h4 {
+        margin: 0 0 6px;
+        font-size: 0.95rem;
+      }
+
+      .mini p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.94rem;
+      }
+
+      .kpi {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px;
+      }
+
+      .kpi strong {
+        display: block;
+        font-size: 1.6rem;
+        margin-bottom: 4px;
+      }
+
+      .footer {
+        margin-top: 28px;
+        border-top: 1px solid var(--line);
+        padding-top: 16px;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      @media (max-width: 800px) {
+        .hero-grid,
+        .grid,
+        .kpis,
+        .bottom-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media print {
+        .page {
+          width: 100%;
+          padding: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="top">
+        <div class="brand">
+          <svg class="logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+            <path d="M9 4a4 4 0 0 0-4 4v2a3 3 0 0 0 0 6v1a3 3 0 0 0 3 3h2" />
+            <path d="M15 4a4 4 0 0 1 4 4v2a3 3 0 0 1 0 6v1a3 3 0 0 1-3 3h-2" />
+            <path d="M9 8h2m0 0v8m0-4h4m0-4h2" />
+          </svg>
+          <span>Dataminds</span>
+        </div>
+        <div class="small">Brochure Comercial 2026</div>
+      </header>
+
+      <h1>Desarrollo de software a medida para empresas que buscan velocidad y escala.</h1>
+      <div class="hero-grid" aria-label="Resumen ejecutivo">
+        <p class="lead">
+          Diseñamos y construimos productos digitales con foco en negocio, ingeniería robusta y entrega continua.
+          Trabajamos con equipos que necesitan resultados medibles, no solo código.
+        </p>
+        <aside class="hero-note">
+          <h3>En 30 días contigo</h3>
+          <ul>
+            <li>Objetivos y alcance definidos</li>
+            <li>Arquitectura y roadmap inicial</li>
+            <li>Primeras entregas en producción</li>
+          </ul>
+        </aside>
+      </div>
+
+      <section class="grid" aria-label="Servicios y propuesta">
+        <article class="card">
+          <h3>Servicios</h3>
+          <ul>
+            <li>Web apps y plataformas B2B/B2C</li>
+            <li>Mobile y experiencias multiplataforma</li>
+            <li>Integraciones y automatización de procesos</li>
+            <li>Data e IA aplicada a operación</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h3>Proceso de trabajo</h3>
+          <ul>
+            <li>Descubrimiento y definición de objetivos</li>
+            <li>Diseño y validación rápida</li>
+            <li>Desarrollo iterativo por sprints</li>
+            <li>Lanzamiento y optimización continua</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h3>Propuesta de valor</h3>
+          <ul>
+            <li>Squads senior dedicados</li>
+            <li>Arquitectura preparada para crecer</li>
+            <li>Visibilidad total de métricas y SLAs</li>
+            <li>Decisiones técnicas alineadas a negocio</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h3>Ideal para</h3>
+          <ul>
+            <li>Equipos de producto en fase de escala</li>
+            <li>Empresas con necesidad de modernización</li>
+            <li>Operaciones con procesos manuales críticos</li>
+            <li>Roadmaps con alta presión de entrega</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="kpis" aria-label="Indicadores">
+        <article class="kpi">
+          <strong>38%</strong>
+          <span class="small">reducción de costos operativos</span>
+        </article>
+        <article class="kpi">
+          <strong>2.4x</strong>
+          <span class="small">más velocidad en entregas</span>
+        </article>
+        <article class="kpi">
+          <strong>+120%</strong>
+          <span class="small">crecimiento en conversión digital</span>
+        </article>
+      </section>
+
+      <section class="bottom-grid" aria-label="Cobertura">
+        <article class="mini">
+          <h4>Sectores donde aportamos</h4>
+          <p>Fintech, retail, healthtech, logística, educación y operación interna empresarial.</p>
+        </article>
+        <article class="mini">
+          <h4>Modalidad de colaboración</h4>
+          <p>Proyecto cerrado, squad dedicado o extensión de equipo técnico con SLAs.</p>
+        </article>
+      </section>
+
+      <footer class="footer">
+        <span class="small">Contacto: contacto@dataminds.dev | +56 9 5555 5555</span>
+        <span class="small">www.dataminds.dev</span>
+      </footer>
+    </main>
+  </body>
+</html>
