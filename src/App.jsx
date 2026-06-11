@@ -149,12 +149,54 @@ const steps = [
 ]
 
 const metrics = [
-  { value: '38%', label: 'reducción de costos operativos' },
-  { value: '2.4x', label: 'más velocidad en entregas' },
-  { value: '+120%', label: 'crecimiento en conversión digital' },
+  { value: '72h', label: 'squad asignado y kick-off' },
+  { value: '2 sem', label: 'ciclos de delivery con demo' },
+  { value: 'mismo día', label: 'respuesta hábil a tu propuesta' },
 ]
 
-const partners = ['Finloop', 'Novabank', 'Atlas Cloud', 'Vertex Health', 'RetailOS', 'Axiom']
+const clients = [
+  { name: 'Cloudata', logo: '/clients/cloudata.png', bg: 'bg-slate-800' },
+  { name: 'Forgal', logo: '/clients/forgal.png' },
+  { name: 'Agrícola y Forestal Doña Isidora', logo: '/clients/isidora.jpg' },
+  { name: 'Sportlife', logo: '/clients/sportlife.png', invert: true },
+  { name: 'M2 Technic', logo: '/clients/m2technic.png', invert: true },
+  { name: 'Comag SpA', logo: '/clients/comag.svg' },
+]
+
+const WHATSAPP_RAW = '56964582696'
+const PHONE_DISPLAY = '+56 9 6458 2696'
+const EMAIL_ADDRESS = 'hola@dataminds.lat'
+
+const isMobileDevice = () => typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+
+const openWhatsApp = (text) => {
+  const onMobile = isMobileDevice()
+  const url = onMobile
+    ? `https://wa.me/${WHATSAPP_RAW}${text ? `?text=${encodeURIComponent(text)}` : ''}`
+    : `https://web.whatsapp.com/send?phone=${WHATSAPP_RAW}${text ? `&text=${encodeURIComponent(text)}` : ''}`
+  window.open(url, '_blank', 'noopener,noreferrer')
+}
+
+const copyToClipboard = async (value) => {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(value)
+      return true
+    }
+  } catch { /* fall through */ }
+  try {
+    const ta = document.createElement('textarea')
+    ta.value = value
+    ta.setAttribute('readonly', '')
+    ta.style.position = 'fixed'
+    ta.style.left = '-9999px'
+    document.body.appendChild(ta)
+    ta.select()
+    const ok = document.execCommand('copy')
+    document.body.removeChild(ta)
+    return ok
+  } catch { return false }
+}
 
 const capabilities = [
   {
@@ -176,6 +218,9 @@ const capabilities = [
 
 export default function App() {
   const [showTopButton, setShowTopButton] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [emailCopied, setEmailCopied] = useState(false)
+  const [phoneCopied, setPhoneCopied] = useState(false)
 
   useEffect(() => {
     const onScroll = () => {
@@ -190,8 +235,49 @@ export default function App() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!menuOpen) return
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [menuOpen])
+
+  const closeMenu = () => setMenuOpen(false)
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const buildContactMessage = (data) => {
+    const nombre = (data.get('nombre') || '').toString().trim()
+    const email = (data.get('email') || '').toString().trim()
+    const mensaje = (data.get('mensaje') || '').toString().trim()
+    return `Hola Dataminds!\n\nSoy ${nombre} (${email}).\n\n${mensaje}\n\n— Enviado desde dataminds.lat`
+  }
+
+  const handleSubmitWhatsApp = (e) => {
+    e.preventDefault()
+    openWhatsApp(buildContactMessage(new FormData(e.currentTarget)))
+  }
+
+  const copyEmail = async () => {
+    const ok = await copyToClipboard(EMAIL_ADDRESS)
+    setEmailCopied(ok)
+    if (ok) setTimeout(() => setEmailCopied(false), 2000)
+  }
+
+  const copyPhone = async () => {
+    const ok = await copyToClipboard(PHONE_DISPLAY)
+    setPhoneCopied(ok)
+    if (ok) setTimeout(() => setPhoneCopied(false), 2000)
+  }
+
+  const handleSendEmail = (form) => {
+    if (!form) return
+    if (typeof form.reportValidity === 'function' && !form.reportValidity()) return
+    const data = new FormData(form)
+    const subject = `Consulta de ${(data.get('nombre') || '').toString().trim() || 'contacto'}`
+    const body = buildContactMessage(data)
+    window.location.href = `mailto:hola@dataminds.lat?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
   }
 
   return (
@@ -204,9 +290,9 @@ export default function App() {
         <div className="absolute left-1/4 top-24 h-3 w-3 rounded-full bg-slate-500/60 animate-bob" />
         <div className="absolute right-1/3 bottom-24 h-2 w-2 rounded-full bg-slate-400/70 animate-bob" />
 
-        <header className="relative z-10">
+        <header className="relative z-20">
           <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-            <div className="flex items-center gap-3">
+            <a href="#" className="flex items-center gap-3" onClick={closeMenu}>
               <div className="flex items-center justify-center text-slate-900">
                 <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M9 4a4 4 0 0 0-4 4v2a3 3 0 0 0 0 6v1a3 3 0 0 0 3 3h2" />
@@ -215,11 +301,24 @@ export default function App() {
                 </svg>
               </div>
               <div className="font-display text-lg font-semibold tracking-wide">Dataminds</div>
-            </div>
-            <div className="hidden items-center gap-8 text-sm text-slate-600 md:flex">
+            </a>
+
+            <div className="hidden items-center gap-7 text-sm text-slate-600 md:flex">
               <a className="group relative transition hover:text-slate-900" href="#servicios">
                 Servicios
                 <span className="absolute -bottom-2 left-0 h-px w-0 bg-slate-900 transition-all group-hover:w-full" />
+              </a>
+              <a
+                className="group relative transition hover:text-slate-900"
+                href="https://spector.dataminds.lat/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Spector
+                <span className="absolute -bottom-2 left-0 h-px w-0 bg-slate-900 transition-all group-hover:w-full" />
+                <svg viewBox="0 0 24 24" className="ml-1 inline-block h-3 w-3 -translate-y-px text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M14 5h5v5M19 5l-9 9M5 9v10h10" />
+                </svg>
               </a>
               <a className="group relative transition hover:text-slate-900" href="#proceso">
                 Proceso
@@ -229,18 +328,111 @@ export default function App() {
                 Resultados
                 <span className="absolute -bottom-2 left-0 h-px w-0 bg-slate-900 transition-all group-hover:w-full" />
               </a>
+              <a className="group relative transition hover:text-slate-900" href="#contacto">
+                Contacto
+                <span className="absolute -bottom-2 left-0 h-px w-0 bg-slate-900 transition-all group-hover:w-full" />
+              </a>
             </div>
-            <button className="rounded-full border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md motion-safe:animate-pulseRing">
+
+            <a
+              href="#contacto"
+              className="hidden rounded-full border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md motion-safe:animate-pulseRing md:inline-flex"
+            >
               Agendar demo
+            </a>
+
+            <button
+              type="button"
+              aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
+              onClick={() => setMenuOpen((v) => !v)}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md md:hidden"
+            >
+              {menuOpen ? (
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M4 7h16M4 12h16M4 17h16" />
+                </svg>
+              )}
             </button>
           </nav>
+
+          <div
+            id="mobile-menu"
+            className={`absolute inset-x-0 top-full origin-top px-6 transition-all duration-300 md:hidden ${
+              menuOpen ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'
+            }`}
+          >
+            <div className="mx-auto max-w-6xl rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-card backdrop-blur">
+              <nav className="flex flex-col text-base text-slate-700">
+                <a onClick={closeMenu} href="#servicios" className="rounded-xl px-4 py-3 transition hover:bg-slate-100 hover:text-slate-900">Servicios</a>
+                <a
+                  onClick={closeMenu}
+                  href="https://spector.dataminds.lat/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between rounded-xl px-4 py-3 transition hover:bg-slate-100 hover:text-slate-900"
+                >
+                  <span>Spector</span>
+                  <svg viewBox="0 0 24 24" className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M14 5h5v5M19 5l-9 9M5 9v10h10" />
+                  </svg>
+                </a>
+                <a onClick={closeMenu} href="#proceso" className="rounded-xl px-4 py-3 transition hover:bg-slate-100 hover:text-slate-900">Proceso</a>
+                <a onClick={closeMenu} href="#resultados" className="rounded-xl px-4 py-3 transition hover:bg-slate-100 hover:text-slate-900">Resultados</a>
+                <a onClick={closeMenu} href="#contacto" className="rounded-xl px-4 py-3 transition hover:bg-slate-100 hover:text-slate-900">Contacto</a>
+              </nav>
+              <a
+                onClick={closeMenu}
+                href="#contacto"
+                className="mt-3 flex items-center justify-center gap-2 rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-night"
+              >
+                Agendar demo
+                <span aria-hidden>→</span>
+              </a>
+              <div className="mt-3 flex items-center justify-around border-t border-slate-200 pt-3 text-xs text-slate-500">
+                <button
+                  type="button"
+                  onClick={async () => { await copyEmail(); closeMenu(); }}
+                  className="transition hover:text-slate-900"
+                >
+                  hola@dataminds.lat
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { closeMenu(); openWhatsApp() }}
+                  className="transition hover:text-emerald-700"
+                >
+                  +56 9 6458 2696
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div
+            onClick={closeMenu}
+            className={`fixed inset-0 z-[-1] bg-slate-900/30 backdrop-blur-sm transition-opacity md:hidden ${
+              menuOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+            }`}
+            aria-hidden="true"
+          />
         </header>
 
         <section className="relative z-10 mx-auto flex max-w-6xl flex-col gap-12 px-6 pb-20 pt-12 md:flex-row md:items-center md:pt-20">
           <div className="flex-1 space-y-6">
-            <p className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-xs uppercase tracking-[0.3em] text-slate-500">
-              Desarrollo de software premium
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-xs uppercase tracking-[0.3em] text-slate-500">
+                Desarrollo de software premium
+              </p>
+              <p className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-4 py-2 text-xs uppercase tracking-[0.3em] text-slate-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Desde 2018
+              </p>
+            </div>
             <h1 className="font-display text-4xl font-semibold leading-tight md:text-6xl">
               Software a medida para empresas que quieren crecer sin fricción.
             </h1>
@@ -249,14 +441,20 @@ export default function App() {
               escala. Convertimos ideas complejas en experiencias simples y rentables.
             </p>
             <div className="flex flex-wrap gap-4">
-              <button className="group relative overflow-hidden rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-card transition hover:-translate-y-0.5">
-                <span className="relative z-10">Hablemos hoy</span>
+              <a
+                href="#contacto"
+                className="group relative overflow-hidden rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-card transition hover:-translate-y-0.5"
+              >
+                <span className="relative z-10">Hablemos de tu proyecto</span>
                 <span className="absolute inset-0 -translate-x-full bg-white/25 transition group-hover:translate-x-0" />
                 <span className="absolute inset-0 -translate-x-full bg-white/10 blur-md motion-safe:animate-shimmer" />
-              </button>
-              <button className="rounded-full border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-800 transition hover:border-slate-900 hover:text-slate-900">
-                Ver casos reales
-              </button>
+              </a>
+              <a
+                href="#servicios"
+                className="rounded-full border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-800 transition hover:border-slate-900 hover:text-slate-900"
+              >
+                Ver qué hacemos
+              </a>
             </div>
             <div className="flex flex-wrap gap-6 text-sm text-slate-600">
               <div className="flex items-center gap-2">
@@ -277,10 +475,10 @@ export default function App() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-white/60">Dashboard vivo</p>
-                    <h3 className="font-display text-xl text-white">Monitor de impacto</h3>
+                    <p className="text-xs uppercase tracking-[0.2em] text-white/60">Cómo trabajamos</p>
+                    <h3 className="font-display text-xl text-white">Compromisos operativos</h3>
                   </div>
-                  <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs text-white">Live</span>
+                  <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs text-white">Estándar</span>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   {metrics.map((metric) => (
@@ -295,12 +493,13 @@ export default function App() {
                 </div>
                 <div className="rounded-2xl border border-white/70 bg-slate-900 p-4">
                   <div className="flex items-center justify-between text-xs text-white/75">
-                    <span>Velocity</span>
-                    <span>92%</span>
+                    <span>Transparencia del sprint</span>
+                    <span>cada viernes</span>
                   </div>
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/20">
-                    <div className="h-full w-[92%] rounded-full bg-gradient-to-r from-white to-slate-400 animate-sweep" />
+                    <div className="h-full w-[78%] rounded-full bg-gradient-to-r from-white to-slate-400 animate-sweep" />
                   </div>
+                  <p className="mt-3 text-[11px] text-white/60">Demo + métricas + backlog actualizado.</p>
                 </div>
               </div>
             </div>
@@ -309,14 +508,31 @@ export default function App() {
       </div>
 
       <section className="mx-auto max-w-6xl px-6 pb-8">
-        <div className="mask-fade-x overflow-hidden rounded-2xl border border-slate-300/70 bg-[#f6f8fb] py-4 shadow-sm">
-          <div className="flex w-[200%] animate-marquee gap-4 whitespace-nowrap">
-            {[...partners, ...partners].map((partner, index) => (
+        <p className="mb-4 text-center text-[11px] uppercase tracking-[0.3em] text-slate-500">
+          Confían en nosotros desde 2018
+        </p>
+        <div className="mask-fade-x overflow-hidden rounded-2xl border border-slate-300/70 bg-white py-5 shadow-sm">
+          <div className="flex w-max animate-marquee gap-4 whitespace-nowrap">
+            {[...clients, ...clients, ...clients].map((client, index) => (
               <div
-                key={`${partner}-${index}`}
-                className="mx-2 inline-flex min-w-[180px] items-center justify-center rounded-xl border border-slate-300/70 bg-[#f0f3f7] px-4 py-3 text-xs uppercase tracking-[0.24em] text-slate-500"
+                key={`${client.name}-${index}`}
+                className={`group mx-2 inline-flex h-20 min-w-[220px] items-center justify-center rounded-xl border border-slate-200 px-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow ${client.bg || 'bg-white'}`}
+                title={client.name}
               >
-                {partner}
+                {client.logo ? (
+                  <img
+                    src={client.logo}
+                    alt={client.name}
+                    loading="lazy"
+                    className={`max-h-12 max-w-[180px] object-contain transition duration-300 group-hover:scale-105 ${
+                      client.invert ? 'invert' : ''
+                    }`}
+                  />
+                ) : (
+                  <span className="text-center text-sm font-semibold uppercase tracking-[0.18em] text-slate-700">
+                    {client.name}
+                  </span>
+                )}
               </div>
             ))}
           </div>
@@ -358,14 +574,19 @@ export default function App() {
               <p className="mt-4 max-w-md text-sm text-slate-600">
                 Combinamos producto, ingeniería y data para convertir roadmap en resultados visibles.
               </p>
-              <div className="mt-20 flex justify-center">
-                <div className="relative flex h-28 w-28 items-center justify-center text-slate-900">
-                  <span className="absolute h-full w-full rounded-full border border-slate-400/50 border-dashed [animation:spin_8s_linear_infinite]" />
-                  <svg viewBox="0 0 24 24" className="logo-action h-24 w-24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M9 4a4 4 0 0 0-4 4v2a3 3 0 0 0 0 6v1a3 3 0 0 0 3 3h2" />
-                    <path d="M15 4a4 4 0 0 1 4 4v2a3 3 0 0 1 0 6v1a3 3 0 0 1-3 3h-2" />
-                    <path d="M9 8h2m0 0v8m0-4h4m0-4h2" />
-                  </svg>
+              <div className="mt-10 rounded-2xl border border-slate-300/70 bg-slate-950 p-5 font-mono text-[12px] leading-relaxed text-slate-200 shadow-soft">
+                <div className="mb-3 flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-rose-400/80" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-300/80" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
+                  <span className="ml-2 text-[10px] uppercase tracking-[0.2em] text-white/40">delivery.yml</span>
+                </div>
+                <div className="space-y-1">
+                  <p><span className="text-emerald-300">discovery</span>: <span className="text-white/70">1–2 semanas</span></p>
+                  <p><span className="text-emerald-300">squad</span>: <span className="text-white/70">PM · ENG · UX</span></p>
+                  <p><span className="text-emerald-300">ciclos</span>: <span className="text-white/70">2 semanas con demo</span></p>
+                  <p><span className="text-emerald-300">stack</span>: <span className="text-white/70">React, Node, Postgres, AWS</span></p>
+                  <p><span className="text-emerald-300">handoff</span>: <span className="text-white/70">repo + docs + métricas</span></p>
                 </div>
               </div>
             </div>
@@ -454,13 +675,13 @@ export default function App() {
       <section id="resultados" className="mx-auto max-w-6xl px-6 py-20">
         <div className="grid gap-10 md:grid-cols-[1.2fr_1fr] md:items-center">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Resultados</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Compromisos</p>
             <h2 className="font-display text-3xl text-slate-800 md:text-4xl">
-              Indicadores reales que muestran el impacto.
+              Lo que puedes esperar desde el día uno.
             </h2>
             <p className="mt-4 text-sm text-slate-600">
-              Medimos la evolución de cada entrega y optimizamos en base a datos. Cada release deja un
-              resultado tangible.
+              No prometemos números mágicos sin contexto. Nos comprometemos con cadencia, transparencia y
+              entregas que puedas medir. Los KPIs los definimos juntos al cierre del discovery.
             </p>
           </div>
           <div className="space-y-4">
@@ -477,32 +698,201 @@ export default function App() {
         </div>
       </section>
 
-      <section className="relative">
+      <section id="contacto" className="relative">
         <div className="absolute inset-0 bg-gradient-to-r from-[#e9edf3] via-[#f3f5f8] to-[#e6ebf2]" />
         <div className="relative mx-auto max-w-6xl px-6 py-20">
-          <div className="relative grid gap-8 overflow-hidden rounded-3xl border border-slate-300/70 bg-[#f3f7fc]/95 p-10 shadow-sm md:grid-cols-[1.2fr_0.8fr]">
-            <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-brand/20 blur-[100px]" />
-            <div className="absolute -bottom-24 left-10 h-56 w-56 rounded-full bg-pop/20 blur-[100px]" />
+          <div className="grid gap-10 md:grid-cols-[1.1fr_0.9fr] md:items-start">
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Hablemos</p>
-              <h2 className="font-display text-3xl text-slate-800 md:text-4xl">¿Listo para acelerar tu producto?</h2>
-              <p className="mt-3 text-sm text-slate-600">
-                Conversemos sobre tu roadmap y construyamos un plan de ejecución concreto.
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Contacto</p>
+              <h2 className="mt-3 font-display text-3xl font-semibold text-slate-800 md:text-5xl">
+                Hablemos de <span className="text-brand">tu operación.</span>
+              </h2>
+              <p className="mt-4 max-w-lg text-sm text-slate-600 md:text-base">
+                Si quieres ver una demo, tienes un caso particular o necesitas cotización para un
+                equipo grande, escríbenos. Respondemos el mismo día hábil.
               </p>
+
+              <div className="mt-8 space-y-3">
+                <button
+                  type="button"
+                  onClick={copyPhone}
+                  aria-label="Copiar teléfono +56 9 6458 2696"
+                  className="group flex w-full items-center justify-between rounded-2xl border border-slate-300/70 bg-[#f6f8fb] p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-slate-500 hover:shadow-md"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900/5 ring-1 ring-slate-300/70 text-slate-700">
+                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.86 19.86 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13 1 .35 2 .65 2.94a2 2 0 0 1-.45 2.11L8.09 10.09a16 16 0 0 0 6 6l1.32-1.32a2 2 0 0 1 2.11-.45c.94.3 1.94.52 2.94.65A2 2 0 0 1 22 16.92z" />
+                      </svg>
+                    </span>
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Teléfono / WhatsApp</p>
+                      <p className="font-display text-base text-slate-800">+56 9 6458 2696</p>
+                    </div>
+                  </div>
+                  {phoneCopied ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-300">
+                      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
+                      Copiado
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.16em] text-slate-500 transition group-hover:text-slate-800">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="11" height="11" rx="2" />
+                        <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+                      </svg>
+                      Copiar
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => openWhatsApp('Hola Dataminds, quiero conversar sobre mi proyecto.')}
+                  aria-label="Abrir WhatsApp con Dataminds"
+                  className="group flex w-full items-center justify-between rounded-2xl border border-slate-300/70 bg-[#f6f8fb] p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-400 hover:shadow-md"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 ring-1 ring-emerald-300/60 text-emerald-700">
+                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                      </svg>
+                    </span>
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">WhatsApp directo</p>
+                      <p className="font-display text-base text-slate-800">Escríbenos por WhatsApp</p>
+                    </div>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.16em] text-emerald-700 transition group-hover:translate-x-1">
+                    Abrir
+                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 5h5v5M19 5l-9 9M5 9v10h10" />
+                    </svg>
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={copyEmail}
+                  aria-label="Copiar email hola@dataminds.lat"
+                  className="group flex w-full items-center justify-between rounded-2xl border border-slate-300/70 bg-[#f6f8fb] p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-slate-500 hover:shadow-md"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900/5 ring-1 ring-slate-300/70 text-slate-700">
+                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
+                        <rect x="3" y="5" width="18" height="14" rx="2" />
+                        <path d="M3 7l9 6 9-6" />
+                      </svg>
+                    </span>
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Email</p>
+                      <p className="font-display text-base text-slate-800">hola@dataminds.lat</p>
+                    </div>
+                  </div>
+                  {emailCopied ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-300">
+                      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
+                      Copiado
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.16em] text-slate-500 transition group-hover:text-slate-800">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="11" height="11" rx="2" />
+                        <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+                      </svg>
+                      Copiar
+                    </span>
+                  )}
+                </button>
+
+                <div className="flex items-center gap-4 rounded-2xl border border-slate-300/70 bg-[#f6f8fb] p-4 shadow-sm">
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900/5 ring-1 ring-slate-300/70 text-slate-700">
+                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3 2" />
+                    </svg>
+                  </span>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Horario</p>
+                    <p className="font-display text-base text-slate-800">Lun a Vie · 9:00 a 19:00 (CLT)</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 rounded-2xl border border-slate-300/70 bg-[#f6f8fb] p-4 shadow-sm">
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900/5 ring-1 ring-slate-300/70 text-slate-700">
+                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
+                      <path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z" />
+                      <circle cx="12" cy="9" r="2.5" />
+                    </svg>
+                  </span>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">Operamos desde</p>
+                    <p className="font-display text-base text-slate-800">Concepción, Chile · Servimos a todo LATAM</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <form className="space-y-4">
-              <input
-                className="w-full rounded-2xl border border-slate-300/70 bg-[#eef3f9] px-4 py-3 text-sm text-slate-800 placeholder:text-slate-500 focus:border-brand focus:outline-none"
-                placeholder="Nombre"
-              />
-              <input
-                className="w-full rounded-2xl border border-slate-300/70 bg-[#eef3f9] px-4 py-3 text-sm text-slate-800 placeholder:text-slate-500 focus:border-brand focus:outline-none"
-                placeholder="Email corporativo"
-              />
-              <button className="w-full rounded-full bg-brand px-6 py-3 text-sm font-semibold text-paper transition hover:-translate-y-0.5 hover:bg-night">
-                Agendar reunión
-              </button>
-            </form>
+
+            <div className="relative">
+              <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand/20 blur-[100px]" />
+              <div className="absolute -bottom-10 -left-6 h-40 w-40 rounded-full bg-pop/20 blur-[100px]" />
+              <div className="relative rounded-3xl border border-slate-300/70 bg-white/80 p-6 shadow-card backdrop-blur md:p-8">
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Mensaje rápido</p>
+                <h3 className="mt-2 font-display text-2xl text-slate-800">Cuéntanos en 30 segundos</h3>
+                <p className="mt-2 text-sm text-slate-600">
+                  Te respondemos por el canal que prefieras (email o WhatsApp).
+                </p>
+                <form className="mt-6 space-y-3" onSubmit={handleSubmitWhatsApp} noValidate>
+                  <input
+                    name="nombre"
+                    required
+                    className="w-full rounded-2xl border border-slate-300/70 bg-[#eef3f9] px-4 py-3 text-sm text-slate-800 placeholder:text-slate-500 focus:border-brand focus:outline-none"
+                    placeholder="Tu nombre"
+                  />
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    className="w-full rounded-2xl border border-slate-300/70 bg-[#eef3f9] px-4 py-3 text-sm text-slate-800 placeholder:text-slate-500 focus:border-brand focus:outline-none"
+                    placeholder="Email corporativo"
+                  />
+                  <textarea
+                    name="mensaje"
+                    rows={4}
+                    required
+                    className="w-full resize-none rounded-2xl border border-slate-300/70 bg-[#eef3f9] px-4 py-3 text-sm text-slate-800 placeholder:text-slate-500 focus:border-brand focus:outline-none"
+                    placeholder="Contexto del proyecto, plazos, equipo actual…"
+                  />
+                  <button
+                    type="submit"
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-emerald-700"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                    </svg>
+                    Enviar por WhatsApp
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => handleSendEmail(e.currentTarget.form)}
+                    className="flex w-full items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-800 transition hover:-translate-y-0.5 hover:border-slate-900"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="5" width="18" height="14" rx="2" />
+                      <path d="M3 7l9 6 9-6" />
+                    </svg>
+                    Enviar por email
+                  </button>
+                  <p className="text-center text-[11px] text-slate-500">
+                    Sin spam, sin pop-ups. Te respondemos por donde escribiste.
+                  </p>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -524,61 +914,62 @@ export default function App() {
                 <span className="font-display text-lg font-semibold text-slate-900">Dataminds</span>
               </div>
               <p className="mt-4 max-w-sm text-sm text-slate-600">
-                Diseñamos y desarrollamos software de alto impacto para equipos que necesitan escalar con rapidez y calidad.
+                Desarrollamos software de alto impacto desde 2018 para equipos que necesitan escalar con rapidez y calidad. Desde Concepción, Chile, para todo LATAM.
               </p>
-              <div className="mt-5 flex gap-3">
-                {['in', 'be', 'gh'].map((item) => (
-                  <button
-                    key={item}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-slate-50 text-xs uppercase text-slate-600 transition hover:-translate-y-0.5 hover:border-slate-900 hover:text-slate-900"
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
             </div>
 
             <div>
-              <h4 className="font-display text-sm uppercase tracking-[0.2em] text-slate-500">Navegacion</h4>
+              <h4 className="font-display text-sm uppercase tracking-[0.2em] text-slate-500">Navegación</h4>
               <div className="mt-4 space-y-2 text-sm text-slate-600">
                 <a className="block transition hover:text-slate-900" href="#servicios">Servicios</a>
                 <a className="block transition hover:text-slate-900" href="#proceso">Proceso</a>
                 <a className="block transition hover:text-slate-900" href="#resultados">Resultados</a>
-                <a className="block transition hover:text-slate-900" href="#">Casos de exito</a>
+                <a className="block transition hover:text-slate-900" href="#contacto">Contacto</a>
               </div>
             </div>
 
             <div>
               <h4 className="font-display text-sm uppercase tracking-[0.2em] text-slate-500">Contacto</h4>
               <div className="mt-4 space-y-2 text-sm text-slate-600">
-                <p>contacto@dataminds.dev</p>
-                <p>+56 9 5555 5555</p>
-                <p>Santiago, Chile</p>
+                <p>
+                  <button type="button" onClick={copyEmail} className="text-left transition hover:text-slate-900">
+                    hola@dataminds.lat
+                    {emailCopied && <span className="ml-2 text-[10px] uppercase tracking-[0.16em] text-emerald-600">✓ copiado</span>}
+                  </button>
+                </p>
+                <p>
+                  <button type="button" onClick={() => openWhatsApp()} className="text-left transition hover:text-emerald-700">
+                    +56 9 6458 2696
+                  </button>
+                </p>
+                <p>Concepción, Chile · Servimos a todo LATAM</p>
+                <p className="text-xs text-slate-500">Lun a Vie · 9:00 a 19:00 (CLT)</p>
               </div>
             </div>
 
             <div>
-              <h4 className="font-display text-sm uppercase tracking-[0.2em] text-slate-500">Newsletter</h4>
-              <p className="mt-4 text-sm text-slate-600">Recibe ideas de producto y tecnologia cada 2 semanas.</p>
-              <div className="mt-4 flex gap-2">
-                <input
-                  className="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none"
-                  placeholder="Tu email"
-                />
-                <button className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5">
-                  Unirme
-                </button>
-              </div>
+              <h4 className="font-display text-sm uppercase tracking-[0.2em] text-slate-500">Empezar</h4>
+              <p className="mt-4 text-sm text-slate-600">
+                Cuéntanos qué quieres construir. Te respondemos el mismo día hábil.
+              </p>
+              <a
+                href="#contacto"
+                className="mt-4 inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-night"
+              >
+                Hablemos de tu proyecto
+                <span aria-hidden>→</span>
+              </a>
             </div>
           </div>
 
           <div className="mt-10 flex flex-col gap-3 border-t border-slate-200 pt-6 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
             <p>© 2026 Dataminds. Todos los derechos reservados.</p>
-            <div className="flex gap-4">
-              <a className="transition hover:text-slate-900" href="#">Privacidad</a>
-              <a className="transition hover:text-slate-900" href="#">Terminos</a>
-              <a className="transition hover:text-slate-900" href="#">Cookies</a>
-            </div>
+            <p>
+              Hecho en Concepción, Chile ·{' '}
+              <button type="button" onClick={copyEmail} className="transition hover:text-slate-900">
+                hola@dataminds.lat
+              </button>
+            </p>
           </div>
         </div>
       </footer>

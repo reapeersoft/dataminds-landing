@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 90" font-family="'Arial Black', Impact, sans-serif">
+  <defs>
+    <linearGradient id="chrome" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#cfd8e3"/>
+      <stop offset="45%" stop-color="#7a8a99"/>
+      <stop offset="55%" stop-color="#7a8a99"/>
+      <stop offset="100%" stop-color="#cfd8e3"/>
+    </linearGradient>
+    <linearGradient id="brandBlue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1f7ec2"/>
+      <stop offset="100%" stop-color="#0d4f87"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(6 14)">
+    <circle cx="32" cy="32" r="32" fill="url(#brandBlue)"/>
+    <circle cx="32" cy="32" r="28" fill="none" stroke="#0d4f87" stroke-width="1.5"/>
+    <g fill="url(#chrome)">
+      <path d="M48 14 L18 32 L48 50 L48 42 L30 32 L48 22 Z"/>
+      <path d="M58 14 L28 32 L58 50 L58 42 L40 32 L58 22 Z" opacity="0.55"/>
+    </g>
+  </g>
+
+  <text x="78" y="55" font-size="44" font-weight="900" fill="url(#brandBlue)" letter-spacing="-1">OMAG</text>
+  <text x="232" y="26" font-size="14" font-weight="700" fill="#0d4f87">SPA</text>
+  <text x="80" y="78" font-size="14" font-weight="700" fill="#0d4f87" letter-spacing="6">COMPRESORES</text>
+</svg>
